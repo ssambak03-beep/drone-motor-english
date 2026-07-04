@@ -173,7 +173,8 @@
     editingCardId: null,
     message: null,
     filterText: "",
-    filterCategory: "all"
+    filterCategory: "all",
+    filterStudyState: "active"
   };
 
   const main = document.getElementById("main");
@@ -222,6 +223,10 @@
       markCurrentCard(actionButton.dataset.status);
     }
 
+    if (action === "restore-card") {
+      restoreCard(id);
+    }
+
     if (action === "edit-card") {
       state.editingCardId = id;
       state.message = null;
@@ -260,6 +265,11 @@
   function handleChange(event) {
     if (event.target.id === "categoryFilter") {
       state.filterCategory = event.target.value;
+      renderCardListOnly();
+    }
+
+    if (event.target.id === "studyStateFilter") {
+      state.filterStudyState = event.target.value;
       renderCardListOnly();
     }
   }
@@ -353,7 +363,7 @@
         const cardProgress = progress[card.id] || createDefaultProgress(card.id);
         return [
           '<article class="phrase-row">',
-          '<span class="pill">' + escapeHtml(cardProgress.status) + '</span>',
+          '<span class="pill">' + escapeHtml(displayStatus(cardProgress.status)) + '</span>',
           '<p class="row-english">' + escapeHtml(card.english) + '</p>',
           '<p class="row-korean">' + escapeHtml(card.korean) + '</p>',
           '</article>'
@@ -428,6 +438,7 @@
       '<button class="button primary" type="button" data-action="mark-card" data-status="memorized">' + iconCheck() + '<span>외움</span></button>',
       '<button class="button amber" type="button" data-action="mark-card" data-status="uncertain">' + iconQuestion() + '<span>애매함</span></button>',
       '<button class="button red" type="button" data-action="mark-card" data-status="review_again">' + iconLoop() + '<span>다시 보기</span></button>',
+      '<button class="button ghost" type="button" data-action="mark-card" data-status="excluded">' + iconClose() + '<span>내 표현과 안 맞음</span></button>',
       '</div>'
     ].join("");
   }
@@ -499,6 +510,11 @@
         return '<option value="' + escapeAttribute(category) + '"' + (category === state.filterCategory ? " selected" : "") + '>' + escapeHtml(category) + '</option>';
       }).join(""),
       '</select>',
+      '<select id="studyStateFilter" aria-label="학습 상태 필터">',
+      '<option value="all"' + (state.filterStudyState === "all" ? " selected" : "") + '>전체</option>',
+      '<option value="active"' + (state.filterStudyState === "active" ? " selected" : "") + '>학습 중</option>',
+      '<option value="excluded"' + (state.filterStudyState === "excluded" ? " selected" : "") + '>제외됨</option>',
+      '</select>',
       '</div>',
       '<div id="cardListMount">',
       renderCardList(),
@@ -516,6 +532,7 @@
 
   function renderCardList() {
     const cards = getFilteredCards();
+    const progressMap = getProgressMap();
 
     if (!cards.length) {
       return '<div class="empty-state">조건에 맞는 카드가 없습니다.</div>';
@@ -524,12 +541,16 @@
     return [
       '<div class="card-list">',
       cards.map(function (card) {
+        const cardProgress = progressMap[card.id] || createDefaultProgress(card.id);
+        const isExcluded = cardProgress.status === "excluded";
         return [
-          '<article class="phrase-row">',
+          '<article class="phrase-row' + (isExcluded ? " is-excluded" : "") + '">',
           '<span class="pill">' + escapeHtml(card.category) + '</span>',
+          isExcluded ? '<span class="pill excluded-pill">제외됨</span>' : '',
           '<p class="row-english">' + escapeHtml(card.english) + '</p>',
           '<p class="row-korean">' + escapeHtml(card.korean) + '</p>',
           '<div class="row-actions">',
+          isExcluded ? '<button class="button blue" type="button" data-action="restore-card" data-id="' + escapeAttribute(card.id) + '">' + iconLoop() + '<span>복원</span></button>' : '',
           '<button class="button ghost" type="button" data-action="edit-card" data-id="' + escapeAttribute(card.id) + '">' + iconEdit() + '<span>수정</span></button>',
           '<button class="button red" type="button" data-action="delete-card" data-id="' + escapeAttribute(card.id) + '">' + iconTrash() + '<span>삭제</span></button>',
           '</div>',
@@ -585,10 +606,14 @@
     const selectedCards = selectSessionCards(force);
 
     if (!selectedCards.length) {
+      const excludedCount = countByStatus("excluded");
       state.message = {
         type: "error",
-        text: "연습할 카드가 없습니다. 카드 화면에서 표현을 추가해 주세요."
+        text: excludedCount
+          ? "연습할 학습 중 카드가 없습니다. 제외됨에서 카드를 복원하거나 새 표현을 추가해 주세요."
+          : "연습할 카드가 없습니다. 카드 화면에서 표현을 추가해 주세요."
       };
+      state.filterStudyState = excludedCount ? "excluded" : "active";
       state.screen = "cards";
       render();
       return;
@@ -626,11 +651,17 @@
 
     const session = state.session;
     const card = session.cards[session.index];
-    updateCardProgress(card.id, status);
-    updateTodayRecord(card.id, false);
+    const isExcluded = status === "excluded";
+    updateCardProgress(card.id, status, {
+      countPractice: !isExcluded
+    });
+
+    if (!isExcluded) {
+      updateTodayRecord(card.id, false);
+    }
 
     if (session.index + 1 >= session.cards.length) {
-      updateTodayRecord(card.id, true);
+      updateTodayRecord(isExcluded ? null : card.id, true);
       state.session = null;
       state.screen = "complete";
       render();
@@ -641,6 +672,18 @@
     session.index += 1;
     session.stage = "english";
     renderPractice();
+  }
+
+  function restoreCard(id) {
+    updateCardProgress(id, "new", {
+      countPractice: false,
+      touchLastPracticed: false
+    });
+    state.message = {
+      type: "info",
+      text: "카드를 다시 학습에 포함했습니다."
+    };
+    renderCards();
   }
 
   function saveCardFromForm(form) {
@@ -742,7 +785,8 @@
     const todayRecord = getTodayRecord();
     const practicedToday = includeToday || !todayRecord ? [] : todayRecord.practicedCardIds;
     const available = cards.filter(function (card) {
-      return !practicedToday.includes(card.id);
+      const progress = progressMap[card.id] || createDefaultProgress(card.id);
+      return progress.status !== "excluded" && !practicedToday.includes(card.id);
     });
 
     const byStatus = function (status) {
@@ -776,7 +820,11 @@
     return aLast.localeCompare(bLast);
   }
 
-  function updateCardProgress(cardId, status) {
+  function updateCardProgress(cardId, status, options) {
+    const settings = Object.assign({
+      countPractice: true,
+      touchLastPracticed: true
+    }, options || {});
     const progress = getProgress();
     const now = new Date().toISOString();
     const index = progress.findIndex(function (item) {
@@ -786,15 +834,15 @@
     if (index >= 0) {
       progress[index] = Object.assign({}, progress[index], {
         status: status,
-        practiceCount: Number(progress[index].practiceCount || 0) + 1,
-        lastPracticedAt: now
+        practiceCount: Number(progress[index].practiceCount || 0) + (settings.countPractice ? 1 : 0),
+        lastPracticedAt: settings.touchLastPracticed ? now : progress[index].lastPracticedAt
       });
     } else {
       progress.push({
         cardId: cardId,
         status: status,
-        practiceCount: 1,
-        lastPracticedAt: now
+        practiceCount: settings.countPractice ? 1 : 0,
+        lastPracticedAt: settings.touchLastPracticed ? now : undefined
       });
     }
 
@@ -813,7 +861,7 @@
       reviewAgainCount: 0,
       completed: false
     };
-    const practiced = current.practicedCardIds.includes(cardId)
+    const practiced = !cardId || current.practicedCardIds.includes(cardId)
       ? current.practicedCardIds
       : current.practicedCardIds.concat(cardId);
 
@@ -908,7 +956,7 @@
     return progress.filter(function (item) {
       return item && typeof item.cardId === "string";
     }).map(function (item) {
-      const status = ["new", "memorized", "uncertain", "review_again"].includes(item.status) ? item.status : "new";
+      const status = ["new", "memorized", "uncertain", "review_again", "excluded"].includes(item.status) ? item.status : "new";
       return {
         cardId: item.cardId,
         status: status,
@@ -982,11 +1030,27 @@
 
   function getFilteredCards() {
     const query = state.filterText.trim().toLowerCase();
+    const progressMap = getProgressMap();
     return getCards().filter(function (card) {
+      const progress = progressMap[card.id] || createDefaultProgress(card.id);
       const matchesText = !query || [card.english, card.korean, card.category].join(" ").toLowerCase().includes(query);
       const matchesCategory = state.filterCategory === "all" || card.category === state.filterCategory;
-      return matchesText && matchesCategory;
+      const matchesStudyState = state.filterStudyState === "all"
+        || (state.filterStudyState === "active" && progress.status !== "excluded")
+        || (state.filterStudyState === "excluded" && progress.status === "excluded");
+      return matchesText && matchesCategory && matchesStudyState;
     });
+  }
+
+  function displayStatus(status) {
+    const labels = {
+      new: "새 표현",
+      memorized: "외움",
+      uncertain: "애매함",
+      review_again: "다시 보기",
+      excluded: "제외됨"
+    };
+    return labels[status] || "새 표현";
   }
 
   function normalizeCards(cards) {

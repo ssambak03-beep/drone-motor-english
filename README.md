@@ -17,5 +17,6 @@ https://ssambak03-beep.github.io/drone-motor-english/
 - English-first speaking practice.
 - Korean-first recall practice.
 - Self-check states: memorized, uncertain, review again.
+- Exclude sentences that do not fit your own product or sales expression.
 - Card add, edit, and delete.
 - Simple local study records.
