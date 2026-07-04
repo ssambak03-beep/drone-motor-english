@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0f766e">
+    <title>Drone Motor English</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow" id="todayLabel">오늘</p>
+          <h1>Motor English</h1>
+        </div>
+        <div class="routine-badge" aria-label="Daily routine time">
+          <span>30</span>
+          <small>min</small>
+        </div>
+      </header>
+
+      <main id="main" class="app-main" tabindex="-1"></main>
+
+      <nav class="bottom-nav" aria-label="주요 화면">
+        <button class="nav-button is-active" type="button" data-screen="today" aria-label="오늘 학습">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 5.5A2.5 2.5 0 0 1 7.5 3h9A2.5 2.5 0 0 1 19 5.5v13A2.5 2.5 0 0 1 16.5 21h-9A2.5 2.5 0 0 1 5 18.5v-13Z"></path>
+            <path d="M8 8h8M8 12h5M8 16h7"></path>
+          </svg>
+          <span>오늘</span>
+        </button>
+        <button class="nav-button" type="button" data-screen="cards" aria-label="카드 관리">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z"></path>
+            <path d="M8 9h8M8 13h5"></path>
+          </svg>
+          <span>카드</span>
+        </button>
+        <button class="nav-button" type="button" data-screen="records" aria-label="학습 기록">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 19V9M12 19V5M19 19v-7"></path>
+            <path d="M4 19.5h16"></path>
+          </svg>
+          <span>기록</span>
+        </button>
+      </nav>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
