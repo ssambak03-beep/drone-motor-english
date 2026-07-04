@@ -6,6 +6,10 @@ Personal mobile-first web app for practicing English expressions used in drone m
 
 Open `index.html` in a browser. The first version is a static app and stores cards, progress, and records in the browser's local storage.
 
+## Daily URL
+
+https://ssambak03-beep.github.io/drone-motor-english/
+
 ## First Version
 
 - Daily 30-minute routine flow.
