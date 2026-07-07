@@ -334,6 +334,79 @@ h3 {
   background: var(--surface);
 }
 
+.import-panel {
+  background: #fbfcfc;
+}
+
+.import-panel h3 {
+  margin: 2px 0 6px;
+  font-size: 1.06rem;
+}
+
+.helper-text {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.template-link {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 10px;
+  color: var(--primary-strong);
+  font-size: 0.9rem;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.template-link:hover {
+  text-decoration: underline;
+}
+
+.upload-box {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  align-items: center;
+  min-height: 74px;
+  padding: 14px;
+  border: 1px dashed var(--primary);
+  border-radius: var(--radius);
+  background: #ecfdf5;
+  color: var(--primary-strong);
+  cursor: pointer;
+}
+
+.upload-box svg {
+  grid-row: span 2;
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.upload-box span {
+  font-weight: 850;
+}
+
+.upload-box small {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.upload-box input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
 .field {
   display: grid;
   gap: 6px;
@@ -431,6 +504,24 @@ h3 {
   color: var(--muted);
   font-size: 0.92rem;
   line-height: 1.45;
+}
+
+.phrase-row .row-note,
+.phrase-note {
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.phrase-note {
+  margin: 0;
+  padding-top: 2px;
+}
+
+.phrase-note strong {
+  display: inline-block;
+  margin-right: 6px;
+  color: var(--ink);
 }
 
 .row-actions {
